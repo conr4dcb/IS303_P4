@@ -21,6 +21,12 @@ host = "localhost"
 port = "5432"
 database = "is303"
 
+# import the excel file
+df = pd.read_excel ("Retail_Sales_Data.xlsx")
+
+# Create the menu
+input("Menu: \nIf you want to import data, enter 1. \nIf you want to see summaries of stored data, enter 2. \nEnter any other value to exit the program: ")
+
 # set up menu loop
 menu_select = 1
 
