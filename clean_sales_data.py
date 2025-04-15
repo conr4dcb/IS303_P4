@@ -9,7 +9,7 @@ import sys
 import pandas as pd
 import numpy as np
 import sqlalchemy
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 import matplotlib.pyplot as plot
 import openpyxl
 import psycopg2 as pg2
@@ -92,7 +92,11 @@ while menu_select == 1 or menu_select ==2 :
         cur_sale = conn.cursor()
 
         # execute a query to pull unique categories from sale
-        cur_sale.execute("select DISTINCT category from sale;")
+        query = """
+            SELECT DISTINCT category FROM sale
+            ORDER BY category;
+        """
+        cur_sale.execute(query)
 
         # fetch the query results from the cursor and convert list of single element tuples to list.
         categories = cur_sale.fetchall()
@@ -100,10 +104,8 @@ while menu_select == 1 or menu_select ==2 :
 
         # print out list of categories for user to select from
         print("\nThe following categories have been sold")
-        i = 1
-        for category in list_categories:
+        for i, category in enumerate(list_categories, start=1):
             print(f"{i}: {category}")
-            i += 1
         
         # get user request for data output and check for invalid data
         valid_input = False
@@ -120,6 +122,8 @@ while menu_select == 1 or menu_select ==2 :
         selected_category = list_categories[user_data_request - 1]
 
         # get data from postgre into a dataframe
-        df_category = pd.read_sql(f"Select * from sale WHERE category = '{selected_category}';", conn)
+        # REBECCA's query here
         # close connection to postgre
         conn.close()
+
+        #Blake's code here
