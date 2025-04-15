@@ -1,5 +1,5 @@
 # IS 303 Section 003
-# Team 2: Elise Chapman, Haley Sommer, Rebecca Mecham, Blake Rogers
+# Team 2: Elise Chapman, Haley Sommer, Rebecca Mecham, Blake Rogers, Conrad Bradford
 
 # This program will extract, transform, and load sales data into a postgres database using python.
 # From postgres, data will be then be fetched, analyzed, and vizualized using python.
@@ -132,4 +132,14 @@ while menu_select == 1 or menu_select ==2 :
         # close connection to postgre
         conn.close()
 
-        #Blake's code here
+        # Using group by on the product to get one row for each product,
+        # and then calculating the sum of total prices for each of those products
+        dfProductSales = dfFiltered.groupby('product')['total_price'].sum()
+
+        # Creating the chart
+        dfProductSales.plot(kind='bar')  # creates the chart
+        plot.title(f"Total Sales in {selected_category}")  # dynamic title
+        plot.xlabel("Product")  # label for the x-axis
+        plot.ylabel("Total Sales")  # label for the y-axis
+        plot.tight_layout()  # avoids label cut-off
+        plot.show()  # makes the chart pop up on the screen
