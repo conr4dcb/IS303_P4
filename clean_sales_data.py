@@ -14,7 +14,7 @@ import openpyxl
 import psycopg2 as pg2
 
 # import the excel file
-# pd.read_excel (r"C:\Users\Elise\Desktop\IS303\IS303_P4.xlsx")
+df = pd.read_excel ("Retail_Sales_Data.xlsx")
 
 # Create the menu
 input("Menu: \nIf you want to import data, enter 1. \nIf you want to see summaries of stored data, enter 2. \nEnter any other value to exit the program: ")
