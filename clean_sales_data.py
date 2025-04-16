@@ -21,24 +21,21 @@ host = "localhost"
 port = "5432"
 database = "is303"
 
-# import the excel file
+# Elise Chapman: import the excel file
 df = pd.read_excel ("Retail_Sales_Data.xlsx")
 
-# Create the menu
-menu_select = input("Menu: \nIf you want to import data, enter 1. \nIf you want to see summaries of stored data, enter 2. \nEnter any other value to exit the program: ")
-
 # set up menu loop
-menu_select = 1
-
-while menu_select == 1 or menu_select ==2 :
+while True:
 
     try:
         # get user input to select menu option. close program if 1 or 2 is not entered.
-        # Create the menu
+        # Elise Chapman: Create the menu
         menu_select = int(input("\nMenu: \nIf you want to import data, enter 1. \nIf you want to see summaries of stored data, enter 2. \nEnter any other value to exit the program: "))
         if menu_select < 1 or menu_select > 2:
+            print("\nClosing the program.\n")
             sys.exit()
     except ValueError:
+        print("Closing the program.\n")
         sys.exit()
 
     # execute code for user menu select option 1
@@ -81,14 +78,14 @@ while menu_select == 1 or menu_select ==2 :
 
         df['category'] = df['product'].map(productCategoriesDict) # use map() to categorize according to the dictionary
 
-        # connect to postgre database
+        #  Conrad Bradford: connect to postgre database
         engine = create_engine(f"postgresql+psycopg2://{username}:{password}@{host}:{port}/{database}")
 
         # push dataframe of sales to postgre database and print out successful import
         df.to_sql('sale', con=engine, if_exists="replace", index=False)
         print("\nYou've imported the excel file into your postgres database.")
 
-    # execute code for user menu select option 2
+    # Conrad Bradford: execute code for user menu select option 2
     elif menu_select == 2: 
 
         # create connection to database
