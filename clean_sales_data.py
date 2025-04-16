@@ -123,6 +123,7 @@ while True:
                 print("Invalid input. Try again.")
 
         selected_category = list_categories[user_data_request - 1]
+        #Prints out the sum of total_price, the average total_price, and the sum of quantity_sold for the selected category
 
         # get data from postgre into a dataframe
         # REBECCA's query here
