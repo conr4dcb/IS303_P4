@@ -9,6 +9,7 @@ import sys
 import pandas as pd
 import numpy as np
 import sqlalchemy
+from sqlalchemy import create_engine, text
 import matplotlib.pyplot as plot
 import openpyxl
 import psycopg2 as pg2
@@ -121,5 +122,30 @@ while menu_select == 1 or menu_select ==2 :
 
         # get data from postgre into a dataframe
         df_category = pd.read_sql(f"Select * from sale WHERE category = '{selected_category}';", conn)
+
+        query1 = """
+        SELECT product, SUM(total_price) AS total_sales 
+        FROM sale
+        WHERE category = :category;
+        GROUP BY product"""
+
+        df_total = pd.read_sql( text(query1), conn, params={"category":selected_category})
+        print(f"Total Sales:{df_total}")
+
+        query2 = """
+        SELECT product, AVERAGE(total_price) AS average_sales 
+        FROM sale
+        WHERE category = :category; """
+        df_average = pd.read_sql( text(query2), conn, params={"category":selected_category})
+        print(f"\nAverage Sales:{df_average}")
+
+        query3 = """
+        SELECT product, SUM(quantity_sold) AS average_sales 
+        FROM sale
+        WHERE category = :category;
+        """
+        df_qty = pd.read_sql( text(query3), conn, params={"category":selected_category})
+        print(f"\nTotal Quantity Sold:{df_qty}")
+
         # close connection to postgre
         conn.close()
