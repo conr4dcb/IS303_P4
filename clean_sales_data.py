@@ -89,21 +89,22 @@ while True:
     elif menu_select == 2: 
 
         # create connection to database
-        conn = pg2.connect(dbname=database, user=username, password=password, host=host, port=port)
-        
-        # create a cursor
-        cur_sale = conn.cursor()
+        engine = create_engine(f"postgresql+psycopg2://{username}:{password}@{host}:{port}/{database}")
+        conn = engine.connect()
+
 
         # execute a query to pull unique categories from sale
         query = """
             SELECT DISTINCT category FROM sale
             ORDER BY category;
         """
-        cur_sale.execute(query)
 
-        # fetch the query results from the cursor and convert list of single element tuples to list.
-        categories = cur_sale.fetchall()
-        list_categories = [row[0] for row in categories]
+        # read query into a dataframe using sqlalchemy
+        df_categories = pd.read_sql(text(query), conn)
+        # turn category column into series
+        categories = df_categories["category"]
+        # turn category series into list
+        list_categories = categories.tolist()
 
         # print out list of categories for user to select from
         print("\nThe following categories have been sold")
@@ -115,7 +116,7 @@ while True:
         while not valid_input:
             try:
                 user_data_request = int(input("Please enter the number of the category you want to see summarized: "))
-                if 1 <= user_data_request <= (len(list_categories) + 1) :
+                if 1 <= user_data_request <= len(list_categories) :
                     valid_input = True
                 else:
                     print("Number out of range. Try again.")
@@ -125,45 +126,51 @@ while True:
         selected_category = list_categories[user_data_request - 1]
         #Prints out the sum of total_price, the average total_price, and the sum of quantity_sold for the selected category
 
-        # get data from postgre into a dataframe
+        # REBECCA MECHAM get data from postgre into a dataframe
         df_category = pd.read_sql(f"Select * from sale WHERE category = '{selected_category}';", conn)
+
+        print(f"\nSales Summary for {selected_category}: ")
 
         query1 = """
         SELECT product, SUM(total_price) AS total_sales 
         FROM sale
-        WHERE category = :category;
-        GROUP BY product"""
+        WHERE category = :category
+        GROUP BY product;"""
 
         df_total = pd.read_sql( text(query1), conn, params={"category":selected_category})
-        print(f"Total Sales:{df_total}")
+        cat_sales = df_total["total_sales"].sum()
+        print(f"Total Sales:  ${cat_sales:.2f}")
 
         query2 = """
-        SELECT product, AVERAGE(total_price) AS average_sales 
+        SELECT product, AVG(total_price) AS average_sales 
         FROM sale
-        WHERE category = :category; """
+        WHERE category = :category
+        GROUP BY product; """
         df_average = pd.read_sql( text(query2), conn, params={"category":selected_category})
-        print(f"\nAverage Sales:{df_average}")
+        cat_avg = df_average["average_sales"].mean()
+        print(f"Average Sales: ${cat_avg:.2f}")
 
         query3 = """
-        SELECT product, SUM(quantity_sold) AS average_sales 
+        SELECT product, SUM(quantity_sold) AS total_quantity_sold 
         FROM sale
-        WHERE category = :category;
+        WHERE category = :category
+        GROUP BY product;
         """
         df_qty = pd.read_sql( text(query3), conn, params={"category":selected_category})
-        print(f"\nTotal Quantity Sold:{df_qty}")
+        cat_qty = df_qty["total_quantity_sold"].sum()
+        print(f"Total Quantity Sold: {cat_qty:.0f} units")
 
-        # REBECCA's query here
         # close connection to postgre
         conn.close()
 
-        # Using group by on the product to get one row for each product,
+        # BLAKE ROGERS Using group by on the product to get one row for each product,
         # and then calculating the sum of total prices for each of those products
-        dfProductSales = dfFiltered.groupby('product')['total_price'].sum()
+        dfProductSales = df_category.groupby('product')['total_price'].sum()
 
         # Creating the chart
         dfProductSales.plot(kind='bar')  # creates the chart
         plot.title(f"Total Sales in {selected_category}")  # dynamic title
         plot.xlabel("Product")  # label for the x-axis
-        plot.ylabel("Total Sales")  # label for the y-axis
+        plot.ylabel("Total Sales ($)")  # label for the y-axis
         plot.tight_layout()  # avoids label cut-off
         plot.show()  # makes the chart pop up on the screen
