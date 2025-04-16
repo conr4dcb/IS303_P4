@@ -9,7 +9,6 @@ import sys
 import pandas as pd
 import numpy as np
 import sqlalchemy
-from sqlalchemy import create_engine
 import matplotlib.pyplot as plot
 import openpyxl
 import psycopg2 as pg2
@@ -118,6 +117,7 @@ while menu_select == 1 or menu_select ==2 :
                 print("Invalid input. Try again.")
 
         selected_category = list_categories[user_data_request - 1]
+        #Prints out the sum of total_price, the average total_price, and the sum of quantity_sold for the selected category
 
         # get data from postgre into a dataframe
         df_category = pd.read_sql(f"Select * from sale WHERE category = '{selected_category}';", conn)
