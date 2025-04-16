@@ -1,5 +1,5 @@
 # IS 303 Section 003
-# Team 2: Elise Chapman, Haley Sommer, Rebecca Mecham, Blake Rogers
+# Team 2: Elise Chapman, Haley Sommer, Rebecca Mecham, Blake Rogers, Conrad Bradford
 
 # This program will extract, transform, and load sales data into a postgres database using python.
 # From postgres, data will be then be fetched, analyzed, and vizualized using python.
@@ -21,18 +21,21 @@ host = "localhost"
 port = "5432"
 database = "is303"
 
-# set up menu loop
-menu_select = 1
+# Elise Chapman: import the excel file
+df = pd.read_excel ("Retail_Sales_Data.xlsx")
 
-while menu_select == 1 or menu_select ==2 :
+# set up menu loop
+while True:
 
     try:
         # get user input to select menu option. close program if 1 or 2 is not entered.
-        # Create the menu
+        # Elise Chapman: Create the menu
         menu_select = int(input("\nMenu: \nIf you want to import data, enter 1. \nIf you want to see summaries of stored data, enter 2. \nEnter any other value to exit the program: "))
         if menu_select < 1 or menu_select > 2:
+            print("\nClosing the program.\n")
             sys.exit()
     except ValueError:
+        print("Closing the program.\n")
         sys.exit()
 
     # execute code for user menu select option 1
@@ -75,14 +78,14 @@ while menu_select == 1 or menu_select ==2 :
 
         df['category'] = df['product'].map(productCategoriesDict) # use map() to categorize according to the dictionary
 
-        # connect to postgre database
+        #  Conrad Bradford: connect to postgre database
         engine = create_engine(f"postgresql+psycopg2://{username}:{password}@{host}:{port}/{database}")
 
         # push dataframe of sales to postgre database and print out successful import
         df.to_sql('sale', con=engine, if_exists="replace", index=False)
         print("\nYou've imported the excel file into your postgres database.")
 
-    # execute code for user menu select option 2
+    # Conrad Bradford: execute code for user menu select option 2
     elif menu_select == 2: 
 
         # create connection to database
@@ -92,7 +95,11 @@ while menu_select == 1 or menu_select ==2 :
         cur_sale = conn.cursor()
 
         # execute a query to pull unique categories from sale
-        cur_sale.execute("select DISTINCT category from sale;")
+        query = """
+            SELECT DISTINCT category FROM sale
+            ORDER BY category;
+        """
+        cur_sale.execute(query)
 
         # fetch the query results from the cursor and convert list of single element tuples to list.
         categories = cur_sale.fetchall()
@@ -100,10 +107,8 @@ while menu_select == 1 or menu_select ==2 :
 
         # print out list of categories for user to select from
         print("\nThe following categories have been sold")
-        i = 1
-        for category in list_categories:
+        for i, category in enumerate(list_categories, start=1):
             print(f"{i}: {category}")
-            i += 1
         
         # get user request for data output and check for invalid data
         valid_input = False
@@ -147,5 +152,18 @@ while menu_select == 1 or menu_select ==2 :
         df_qty = pd.read_sql( text(query3), conn, params={"category":selected_category})
         print(f"\nTotal Quantity Sold:{df_qty}")
 
+        # REBECCA's query here
         # close connection to postgre
         conn.close()
+
+        # Using group by on the product to get one row for each product,
+        # and then calculating the sum of total prices for each of those products
+        dfProductSales = dfFiltered.groupby('product')['total_price'].sum()
+
+        # Creating the chart
+        dfProductSales.plot(kind='bar')  # creates the chart
+        plot.title(f"Total Sales in {selected_category}")  # dynamic title
+        plot.xlabel("Product")  # label for the x-axis
+        plot.ylabel("Total Sales")  # label for the y-axis
+        plot.tight_layout()  # avoids label cut-off
+        plot.show()  # makes the chart pop up on the screen
