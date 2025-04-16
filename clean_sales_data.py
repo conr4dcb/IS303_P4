@@ -126,6 +126,32 @@ while True:
         #Prints out the sum of total_price, the average total_price, and the sum of quantity_sold for the selected category
 
         # get data from postgre into a dataframe
+        df_category = pd.read_sql(f"Select * from sale WHERE category = '{selected_category}';", conn)
+
+        query1 = """
+        SELECT product, SUM(total_price) AS total_sales 
+        FROM sale
+        WHERE category = :category;
+        GROUP BY product"""
+
+        df_total = pd.read_sql( text(query1), conn, params={"category":selected_category})
+        print(f"Total Sales:{df_total}")
+
+        query2 = """
+        SELECT product, AVERAGE(total_price) AS average_sales 
+        FROM sale
+        WHERE category = :category; """
+        df_average = pd.read_sql( text(query2), conn, params={"category":selected_category})
+        print(f"\nAverage Sales:{df_average}")
+
+        query3 = """
+        SELECT product, SUM(quantity_sold) AS average_sales 
+        FROM sale
+        WHERE category = :category;
+        """
+        df_qty = pd.read_sql( text(query3), conn, params={"category":selected_category})
+        print(f"\nTotal Quantity Sold:{df_qty}")
+
         # REBECCA's query here
         # close connection to postgre
         conn.close()
